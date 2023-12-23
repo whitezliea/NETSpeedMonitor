@@ -11,6 +11,14 @@ namespace NETSpeedMonitor.Command.Windows.PrintInfo
     {
         public static void print_pid2traffic()
         {
+            //防止内存泄漏
+            if (CoreDataWorker.pid2Traffic.Count > 1000)
+            {
+                CoreDataWorker.pid2Traffic.Clear();
+                CoreDataWorker.pid2Traffic_old.Clear();
+                return;
+            }
+
             Console.Clear();
             //
             List<(int, string, uint, uint, ulong)> printList = new();
