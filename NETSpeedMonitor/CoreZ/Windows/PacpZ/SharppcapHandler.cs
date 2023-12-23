@@ -51,29 +51,35 @@ namespace NETSpeedMonitor.CoreZ.Windows.PacpZ
                 return;
             }
 
-            ICaptureDevice Cdevice = devices[0];
+            List<ICaptureDevice> Cdevices = new();
             foreach (var device in devices)
             {
                 //Console.WriteLine(device.ToString());
-                if (device.Description.Contains("Realtek")) //捕捉所有的网卡
+                if (device.MacAddress != null)
                 {
-                    Cdevice = device;
-                    break;
+                    Cdevices.Add(device);
                 }
             }
 
-            Console.WriteLine(Cdevice.ToString());
-            //打开设备
-            Cdevice.OnPacketArrival += new PacketArrivalEventHandler(device_OnPakcetArrival);
-            int readTimeoutMilliseconds = 1000;
-            Cdevice.Open(mode: DeviceModes.Promiscuous | DeviceModes.NoCaptureLocal, read_timeout: readTimeoutMilliseconds);
-            //开始捕获数据包
-            Cdevice.StartCapture();
+            foreach (var Cdevice in Cdevices)
+            {
+                Console.WriteLine(Cdevice.ToString());
+                //打开设备
+                Cdevice.OnPacketArrival += new PacketArrivalEventHandler(device_OnPakcetArrival);
+                int readTimeoutMilliseconds = 1000;
+                Cdevice.Open(mode: DeviceModes.Promiscuous | DeviceModes.NoCaptureLocal, read_timeout: readTimeoutMilliseconds);
+                //开始捕获数据包
+                Cdevice.StartCapture();
+            }
+
             Console.WriteLine("Press Enter to stop capturing...");
 
             Console.ReadLine();
-            // 停止捕获数据包
-            Cdevice.StopCapture();
+            foreach (var Cdevice in Cdevices)
+            {
+                // 停止捕获数据包
+                Cdevice.StopCapture();
+            }
 
         }
 
