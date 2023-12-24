@@ -70,7 +70,7 @@ namespace NETSpeedMonitor.CoreZ.Windows.ThreadZ
             tcp_timer.Start();
             void Timer_Elapsed(object? sender, ElapsedEventArgs e)
             {
-                CoreDataWorker.tcp_work(false);
+                CoreDataWorker.tcp_work();
                 LoggerWorker.Instance._logger.Debug("connection2pid 表更新 表大小：" + CoreDataWorker.connection2pid.Count);
                 if (CoreDataWorker.connection2pid.Count > 10240)
                 {
