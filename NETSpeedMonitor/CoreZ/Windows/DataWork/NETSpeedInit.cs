@@ -3,6 +3,7 @@ using NETSpeedMonitor.CoreZ.Windows.NetInfo;
 using NETSpeedMonitor.CoreZ.Windows.PacpZ;
 using NETSpeedMonitor.CoreZ.Windows.ProxyInfo;
 using NETSpeedMonitor.CoreZ.Windows.ThreadZ;
+using NETSpeedMonitor.myLogger;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -19,7 +20,7 @@ namespace NETSpeedMonitor.CoreZ.Windows.DataWork
         [SupportedOSPlatform("windows")]
         public static void NetSpeedMonitor_work()
         {
-            Console.WriteLine("work init!");
+            LoggerWorker.Instance._logger.Information("work init!");
             _init_work(); //初始化数据
             ThreadHandler._all_Thread_start(); //开始多线程定时更新数据
             SharppcapHandler.Instance.CaputreHandler(); //开始捕获数据
@@ -33,21 +34,21 @@ namespace NETSpeedMonitor.CoreZ.Windows.DataWork
             //1. Process PID<-->PropName 
             //ProcessList.Instance.GetAllProcessName();
             CoreDataWorker.proc_work();
-            Console.WriteLine("-------------------------------------------------");
+            LoggerWorker.Instance._logger.Verbose("-------------------------------------------------");
             //2. get all MAC
             CoreDataWorker.mac_work();
-            Console.WriteLine("-------------------------------------------------");
+            LoggerWorker.Instance._logger.Verbose("-------------------------------------------------");
             //3. get all tcp
             LocalNetInfo.Instance.GetTcpAllList();
             CoreDataWorker.tcp_work();
-            Console.WriteLine("-------------------------------------------------");
+            LoggerWorker.Instance._logger.Verbose("-------------------------------------------------");
             //4. get all udp
-            //LocalNetInfo.Instance.GetUdpAllList();
+            LocalNetInfo.Instance.GetUdpAllList();
             CoreDataWorker.udp_work();
-            Console.WriteLine("-------------------------------------------------");
+            LoggerWorker.Instance._logger.Verbose("-------------------------------------------------");
             //5. get Proxy Info
             NetworkEnvWarpper.NetEnvHandler_Init();
-            Console.WriteLine("-------------------------------------------------");
+            LoggerWorker.Instance._logger.Verbose("-------------------------------------------------");
         }
 
 
@@ -63,14 +64,15 @@ namespace NETSpeedMonitor.CoreZ.Windows.DataWork
 
         static void _end_work()
         {
-            Console.WriteLine("all_end");
+            LoggerWorker.Instance._logger.Information("all_end");
             foreach (var data in CoreDataWorker.pid2Traffic)
             {
                 CoreDataWorker.ProcDict.TryGetValue(data.Key, out var ProcName);
                 ProcName = (ProcName == null) ? "unknown" : ProcName;
-                Console.WriteLine($"进程{ProcName}-->的上行总流量为{data.Value.Item1}bytes，下行总流量为{data.Value.Item2}bytes");
+                LoggerWorker.Instance._logger.Information($"进程{ProcName}-->的上行总流量为{data.Value.Item1}bytes，下行总流量为{data.Value.Item2}bytes");
             }
-            Console.ReadLine();
+            LoggerWorker.Instance.logger_end();
+            //Console.ReadLine();
         }
     }
 }

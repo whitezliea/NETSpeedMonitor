@@ -1,4 +1,5 @@
 ﻿using NETSpeedMonitor.CoreZ.Windows.DataWork;
+using NETSpeedMonitor.myLogger;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,22 +10,6 @@ namespace NETSpeedMonitor.CoreZ.Windows.PacpZ
 {
     internal class PcapinfoZWarpper
     {
-        public string GetSize(long zbytes)
-        {
-            string[] units = { "", "K", "M", "G", "T", "P" };
-
-            foreach (string unit in units)
-            {
-                if (zbytes < 1024)
-                {
-                    return $"{zbytes:F2}{unit}b";
-                }
-                zbytes /= 1024;
-            }
-
-            return $"{zbytes:F2}Eb"; // If the size is extremely large
-        }
-
 
         public static void pid2traffic_update(int pid, int packetLength, bool isUp = true)
         {
@@ -78,7 +63,6 @@ namespace NETSpeedMonitor.CoreZ.Windows.PacpZ
             }
         }
 
-
         public static void PcapinfoZ_Unpack(in PcapinfoZ packet)
         {
             var isTCP = packet.isTCP;
@@ -89,9 +73,6 @@ namespace NETSpeedMonitor.CoreZ.Windows.PacpZ
             var destionIP = packet.DestinationIP;
             var destPort = packet.DestinationPort;
 
-            bool isPrint = false;
-
-            //Console.WriteLine("-------------------------summary------------------------------------");
             if (CoreDataWorker.MACList.Contains(soucreMAC)) //上行流量
             {
                 if (isTCP) // 是TCP包
@@ -104,8 +85,7 @@ namespace NETSpeedMonitor.CoreZ.Windows.PacpZ
                     {
                         CoreDataWorker.ProcDict.TryGetValue(pid, out var ProcName);
                         ProcName = (ProcName == null) ? "unknown" : ProcName;
-                        if (isPrint)
-                            Console.WriteLine($"找到进程{pid}?=>{result},进程名{ProcName},连接状态为{sourceIP}==>{destionIP},发送TCP上行流量包大小{packetLength}");
+                        LoggerWorker.Instance._logger.Information($"找到进程{pid}?=>{result},进程名{ProcName},连接状态为{sourceIP}==>{destionIP},发送TCP上行流量包大小{packetLength}");
                         pid2traffic_update(pid, packetLength, true);
                     }
                     //else if (CoreDataWorker.IPList.Contains(destionIP))
@@ -114,8 +94,7 @@ namespace NETSpeedMonitor.CoreZ.Windows.PacpZ
                     //}
                     else
                     {
-                        if (isPrint)
-                            Console.WriteLine($"没有找到进程{pid}?=>{result},连接状态为{sourceIP}==>{destionIP},发送TCP上行流量包大小{packetLength}");
+                        LoggerWorker.Instance._logger.Warning($"没有找到进程{pid}?=>{result},连接状态为{sourceIP}==>{destionIP},发送TCP上行流量包大小{packetLength}");
                     }
                 }
                 else     //是UDP
@@ -139,14 +118,12 @@ namespace NETSpeedMonitor.CoreZ.Windows.PacpZ
                         }
                         CoreDataWorker.ProcDict.TryGetValue(udppid, out var ProcName);
                         ProcName = (ProcName == null) ? "unknown" : ProcName;
-                        if (isPrint)
-                            Console.WriteLine($"找到进程{udppid}?=>{result},进程名{ProcName},状态为{sourceIP}==>{destionIP},发送UDP上行流量包大小{packetLength}");
+                        LoggerWorker.Instance._logger.Information($"找到进程{udppid}?=>{result},进程名{ProcName},状态为{sourceIP}==>{destionIP},发送UDP上行流量包大小{packetLength}");
                         pid2traffic_update(udppid, packetLength, true);
                     }
                     else
                     {
-                        if (isPrint)
-                            Console.WriteLine($"没有找到进程{udppid}?=>{result},状态为{sourceIP}==>{destionIP},发送UDP上行流量包大小{packetLength}");
+                        LoggerWorker.Instance._logger.Warning($"没有找到进程{udppid}?=>{result},状态为{sourceIP}==>{destionIP},发送UDP上行流量包大小{packetLength}");
                     }
                 }
             }
@@ -161,14 +138,12 @@ namespace NETSpeedMonitor.CoreZ.Windows.PacpZ
                     {
                         CoreDataWorker.ProcDict.TryGetValue(pid, out var ProcName);
                         ProcName = (ProcName == null) ? "unknown" : ProcName;
-                        if (isPrint)
-                            Console.WriteLine($"找到进程{pid}?=>{result},进程名{ProcName},连接状态为{sourceIP}==>{destionIP},发送TCP下行流量包大小{packetLength}");
+                        LoggerWorker.Instance._logger.Information($"找到进程{pid}?=>{result},进程名{ProcName},连接状态为{sourceIP}==>{destionIP},发送TCP下行流量包大小{packetLength}");
                         pid2traffic_update(pid, packetLength, false);
                     }
                     else
                     {
-                        if (isPrint)
-                            Console.WriteLine($"没有找到进程{pid}?=>{result},连接状态为{sourceIP}==>{destionIP},发送TCP下行流量包大小{packetLength}"); ;
+                        LoggerWorker.Instance._logger.Warning($"没有找到进程{pid}?=>{result},连接状态为{sourceIP}==>{destionIP},发送TCP下行流量包大小{packetLength}"); ;
                     }
                 }
                 else     //是UDP
@@ -192,19 +167,15 @@ namespace NETSpeedMonitor.CoreZ.Windows.PacpZ
                         }
                         CoreDataWorker.ProcDict.TryGetValue(udppid, out var ProcName);
                         ProcName = (ProcName == null) ? "unknown" : ProcName;
-                        if (isPrint)
-                            Console.WriteLine($"找到进程{udppid}?=>{result},进程名{ProcName},状态为{sourceIP}==>{destionIP},发送UDP下行流量包大小{packetLength}");
+                        LoggerWorker.Instance._logger.Information($"找到进程{udppid}?=>{result},进程名{ProcName},状态为{sourceIP}==>{destionIP},发送UDP下行流量包大小{packetLength}");
                         pid2traffic_update(udppid, packetLength, false);
                     }
                     else
                     {
-                        if (isPrint)
-                            Console.WriteLine($"没有找到进程{udppid}?=>{result},状态为{sourceIP}==>{destionIP},发送UDP下行流量包大小{packetLength}");
+                        LoggerWorker.Instance._logger.Warning($"没有找到进程{udppid}?=>{result},状态为{sourceIP}==>{destionIP},发送UDP下行流量包大小{packetLength}");
                     }
                 }
-            }
-            if (isPrint)
-                Console.WriteLine("------------------------------------------------------------------");
+            }         
         }
     }
 

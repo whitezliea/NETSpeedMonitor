@@ -203,7 +203,7 @@ namespace NETSpeedMonitor.CoreZ.Windows.NetInfo
                 udpinfolist.Add(tmp);
             }
 
-            udpinfolist.Sort((s1, s2) => s2.dwlocaladdr.CompareTo(s1.dwlocaladdr));
+            //udpinfolist.Sort((s1, s2) => s2.dwlocaladdr.CompareTo(s1.dwlocaladdr));
 
             return true;
         }
@@ -232,7 +232,7 @@ namespace NETSpeedMonitor.CoreZ.Windows.NetInfo
                 tcpinfolist.Add(tmp);
             }
 
-            tcpinfolist.Sort((s1, s2) => s1.dwlocalport.CompareTo(s2.dwlocalport));
+            //tcpinfolist.Sort((s1, s2) => s1.dwlocalport.CompareTo(s2.dwlocalport));
             return true;
         }
     }

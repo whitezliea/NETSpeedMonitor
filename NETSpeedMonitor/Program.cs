@@ -1,4 +1,5 @@
 ﻿using NETSpeedMonitor.CoreZ.Windows.DataWork;
+using NETSpeedMonitor.myLogger;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 
@@ -6,25 +7,26 @@ namespace NETSpeedMonitor
 {
     internal class Program
     {
+        // publish：dotnet publish -r win-x64 -p:PublishSingleFile=true --self-contained false --configuration Release
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello, World!");
+            LoggerWorker.Instance._logger.Information("Hello, World!");
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                Console.WriteLine("Running on Windows.");
+                LoggerWorker.Instance._logger.Information("Running on Windows.");
                 NETSpeedInit.NetSpeedMonitor_work();
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
-                Console.WriteLine("Running on Linux.");
+                LoggerWorker.Instance._logger.Information("Running on Linux.");
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
-                Console.WriteLine("Running on macOS.");
+                LoggerWorker.Instance._logger.Information("Running on macOS.");
             }
             else
             {
-                Console.WriteLine("Unknown operating system.");
+                LoggerWorker.Instance._logger.Information("Unknown operating system.");
             }
         }
     }

@@ -2,6 +2,7 @@
 using NETSpeedMonitor.CoreZ.Windows.NetInfo;
 using NETSpeedMonitor.CoreZ.Windows.PacpZ;
 using NETSpeedMonitor.CoreZ.Windows.ProcInfo;
+using NETSpeedMonitor.myLogger;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -35,40 +36,37 @@ namespace NETSpeedMonitor.CoreZ.Windows.DataWork
 
         //public static HashSet<IPAddress> IPList = new();
 
-        public static void proc_work(bool isPrint = true)
+        public static void proc_work()
         {
-            if (!ProcInfoWarpper.GetProcessInfoList(ref ProcDict, isPrint))
+            if (!ProcInfoWarpper.GetProcessInfoList(ref ProcDict))
             {
-                Console.WriteLine("error");
+                LoggerWorker.Instance._logger.Error("GetProcessInfoList error!");
                 return;
             }
-            Console.WriteLine();
+            LoggerWorker.Instance._logger.Verbose("");
         }
-        public static void mac_work(bool isPrint = true)
+        public static void mac_work()
         {
-            LocalNetInfo.Instance.GetAllMacList(ref MACList, isPrint);
-            Console.WriteLine();
+            LocalNetInfo.Instance.GetAllMacList(ref MACList);
+            LoggerWorker.Instance._logger.Verbose("");
         }
-        public static void udp_work(bool isPrint = true)
+        public static void udp_work()
         {
             List<UDP_INFO_PID> udpinfolist = new();
             if (!NetInfoWrapper.GetUdpRowList(ref udpinfolist))
             {
-                Console.WriteLine("get udp list error");
+                LoggerWorker.Instance._logger.Error("get udp list error");
             }
 
             foreach (var udpinfo in udpinfolist)
             {
-                if (isPrint)
-                {
-                    ProcDict.TryGetValue(udpinfo.dwpid, out var ProcName);
-                    ProcName = (ProcName == null) ? "unknown" : ProcName;
-                    Console.WriteLine("{0}<-->{1}-->{2}:{3}",
+                ProcDict.TryGetValue(udpinfo.dwpid, out var ProcName);
+                ProcName = (ProcName == null) ? "unknown" : ProcName;
+                LoggerWorker.Instance._logger.Verbose("{0}<-->{1}-->{2}:{3}",
                     udpinfo.dwpid,
                     ProcName,
                     udpinfo.dwlocaladdr,
                     udpinfo.dwlocalport);
-                }
 
                 var result = Udp2pid.TryGetValue(udpinfo.dwlocalport, out var oldvalue);
                 if (!result) //没有找到变量
@@ -81,13 +79,16 @@ namespace NETSpeedMonitor.CoreZ.Windows.DataWork
                 {
                     // 防止内存泄漏
                     if (oldvalue?.Count > 1024)
+                    {
                         oldvalue.Clear();
+                        LoggerWorker.Instance._logger.Warning(udpinfo.dwlocaladdr + "的udp连接表已满，需要强制清理防止内存泄漏");
+                    }
                     //if(!Udp2pid[udpinfo.dwlocalport].Contains((udpinfo.dwlocaladdr, udpinfo.dwpid)))
                     oldvalue?.Add((udpinfo.dwlocaladdr, udpinfo.dwpid));
                 }
 
             }
-            Console.WriteLine();
+            LoggerWorker.Instance._logger.Verbose("");
         }
         public static void tcp_work(bool isPrint = true)
         {
@@ -96,7 +97,7 @@ namespace NETSpeedMonitor.CoreZ.Windows.DataWork
             List<TCP_INFO_PID> tcpinfolist = new();
             if (!NetInfoWrapper.GetTcpRowList(ref tcpinfolist))
             {
-                Console.WriteLine("get tcp list error");
+                LoggerWorker.Instance._logger.Error("get tcp list error");
                 return;
             }
 
@@ -136,20 +137,16 @@ namespace NETSpeedMonitor.CoreZ.Windows.DataWork
                     }
                 }
 
-
-                if (isPrint)
-                {
-                    ProcDict.TryGetValue(proc_id, out var ProcName);
-                    ProcName = (ProcName == null) ? "unknown" : ProcName;
-                    Console.WriteLine("{0}<-->{1}-->{2}:{3}<==>{4}:{5} => {6}",
-                        proc_id,
-                        ProcName,
-                        tcpinfo.dwlocaladdr,
-                        tcpinfo.dwlocalport,
-                        tcpinfo.dwremoteaddr,
-                        tcpinfo.dwremoteport,
-                        NetInfoWrapper.convert_state(tcpinfo.dwstate));
-                }
+                ProcDict.TryGetValue(proc_id, out var ProcName);
+                ProcName = (ProcName == null) ? "unknown" : ProcName;
+                LoggerWorker.Instance._logger.Verbose("{0}<-->{1}-->{2}:{3}<==>{4}:{5} => {6}",
+                    proc_id,
+                    ProcName,
+                    tcpinfo.dwlocaladdr,
+                    tcpinfo.dwlocalport,
+                    tcpinfo.dwremoteaddr,
+                    tcpinfo.dwremoteport,
+                    NetInfoWrapper.convert_state(tcpinfo.dwstate));
 
                 result = connection2pid.TryGetValue((tcpinfo.dwlocaladdr, tcpinfo.dwlocalport), out var oldvalue);
                 if (!result)//没有键值，进行插入
@@ -162,27 +159,8 @@ namespace NETSpeedMonitor.CoreZ.Windows.DataWork
                         proc_id, //new value
                         oldvalue);    //old value
                 }
-
-                //if (!connection2pid.ContainsKey((tcpinfo.dwlocaladdr, tcpinfo.dwlocalport)))        
-                //{
-                //    connection2pid.TryAdd((tcpinfo.dwlocaladdr, tcpinfo.dwlocalport),
-                //                        proc_id);
-                //}
-                //else
-                //{
-                //    connection2pid.TryGetValue((tcpinfo.dwlocaladdr, tcpinfo.dwlocalport), out var oldvalue);
-                //    connection2pid.TryUpdate((tcpinfo.dwlocaladdr, tcpinfo.dwlocalport), 
-                //                            proc_id, //new value
-                //                            oldvalue);    //old value
-                //    //connection2pid[(tcpinfo.dwlocaladdr, tcpinfo.dwlocalport)] = tcpinfo.dwpid;
-                //}
-                //else
-                //{
-                //    Console.WriteLine("TCP Existing Port multiplexing!");
-                //}
             }
-            Console.WriteLine();
-
+            LoggerWorker.Instance._logger.Verbose("");
         }
     }
 }

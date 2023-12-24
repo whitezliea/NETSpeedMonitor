@@ -8,6 +8,7 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using NETSpeedMonitor.CoreZ.Windows.DataWork;
+using NETSpeedMonitor.myLogger;
 
 namespace NETSpeedMonitor.CoreZ.Windows.PacpZ
 {
@@ -15,8 +16,34 @@ namespace NETSpeedMonitor.CoreZ.Windows.PacpZ
     {
         private static SharppcapHandler _instance = null!;
         private static readonly object _lock = new object();
-        private SharppcapHandler() { }
+        private readonly List<ICaptureDevice> Cdevices = new();
+        private SharppcapHandler() 
+        {
+            CaptureDeviceList devices = CaptureDeviceList.Instance;
 
+            if (devices == null || devices.Count < 1)
+            {
+                LoggerWorker.Instance._logger.Error("No capture devices found");
+                return;
+            }
+
+            foreach (var device in devices)
+            {
+                //Console.WriteLine(device.ToString());
+                if (device.MacAddress != null)
+                {
+                    Cdevices.Add(device);
+                }
+            }
+        }
+        ~SharppcapHandler()
+        {
+            foreach (var Cdevice in Cdevices)
+            {
+                // 停止捕获数据包
+                Cdevice.StopCapture();
+            }
+        }
 
         /// <summary>
         /// 懒汉式单例模式
@@ -40,30 +67,13 @@ namespace NETSpeedMonitor.CoreZ.Windows.PacpZ
         {
             if (!isCapture)
             {
-                Console.WriteLine("do not anything");
+                LoggerWorker.Instance._logger.Warning("do not anything");
                 return;
-            }
-            CaptureDeviceList devices = CaptureDeviceList.Instance;
-
-            if (devices == null || devices.Count < 1)
-            {
-                Console.WriteLine("No capture devices found");
-                return;
-            }
-
-            List<ICaptureDevice> Cdevices = new();
-            foreach (var device in devices)
-            {
-                //Console.WriteLine(device.ToString());
-                if (device.MacAddress != null)
-                {
-                    Cdevices.Add(device);
-                }
             }
 
             foreach (var Cdevice in Cdevices)
             {
-                Console.WriteLine(Cdevice.ToString());
+                LoggerWorker.Instance._logger.Debug((Cdevice.ToString() == null ? "null" : Cdevice.ToString())!);
                 //打开设备
                 Cdevice.OnPacketArrival += new PacketArrivalEventHandler(device_OnPakcetArrival);
                 int readTimeoutMilliseconds = 1000;
@@ -71,18 +81,9 @@ namespace NETSpeedMonitor.CoreZ.Windows.PacpZ
                 //开始捕获数据包
                 Cdevice.StartCapture();
             }
-
-            Console.WriteLine("Press Enter to stop capturing...");
-
+            //LoggerWorker.Instance._logger.Verbose("Press Enter to stop capturing...");
             Console.ReadLine();
-            foreach (var Cdevice in Cdevices)
-            {
-                // 停止捕获数据包
-                Cdevice.StopCapture();
-            }
-
         }
-
 
         void device_OnPakcetArrival(object sender, PacketCapture e)
         {
@@ -100,18 +101,12 @@ namespace NETSpeedMonitor.CoreZ.Windows.PacpZ
             int packetLength = 0;
             bool isTCP = true;
 
-            bool isPrint = false;
             #region 网络数据包解析
-            //Console.WriteLine("pa+{0}",rawPacket?.PacketLength);
             if (rawPacket != null)
             {
-
                 Packet packet = Packet.ParsePacket(rawPacket.LinkLayerType, rawPacket.Data);
-                if (isPrint)
-                {
-                    Console.WriteLine("\n----------------------Data-----------------------------");
-                    Console.WriteLine("packet's TotalPacketLength: {0}", packet.TotalPacketLength);
-                }
+                LoggerWorker.Instance._logger.Debug("----------------------Data-----------------------------");
+                LoggerWorker.Instance._logger.Debug("packet's TotalPacketLength: {0}", packet.TotalPacketLength);
                 packetLength = packet.TotalPacketLength;
                 //Source MAC <---> Des MAC | source port <---> remote port | packetLength
                 var ethernetPacket = packet.Extract<EthernetPacket>();
@@ -119,33 +114,29 @@ namespace NETSpeedMonitor.CoreZ.Windows.PacpZ
                 {
                     soucreMAC = ethernetPacket.SourceHardwareAddress;
                     destionMAC = ethernetPacket.DestinationHardwareAddress;
-
-                    if (isPrint)
-                    {
-                        Console.WriteLine("-------------------MAC Layer!------------------------");
-                        Console.WriteLine(ethernetPacket.ToString());
-                        Console.WriteLine("MAC Layer:{0} <--> {1}",
-                            ethernetPacket.SourceHardwareAddress,
-                            ethernetPacket.DestinationHardwareAddress);
-                        Console.WriteLine("-----------------------------------------------------");
-                    }
-
+                    LoggerWorker.Instance._logger.Debug("-------------------MAC Layer!------------------------");
+                    LoggerWorker.Instance._logger.Debug(ethernetPacket.ToString());
+                    LoggerWorker.Instance._logger.Debug("MAC Layer:{0} <--> {1}",
+                        ethernetPacket.SourceHardwareAddress,
+                        ethernetPacket.DestinationHardwareAddress);
+                    LoggerWorker.Instance._logger.Debug("-----------------------------------------------------");
+                }
+                if (ethernetPacket?.Type != EthernetType.IPv4)
+                {
+                    LoggerWorker.Instance._logger.Debug("It is not IPV4");
+                    return;
                 }
                 var ipPacket = packet.Extract<IPPacket>();
                 if (ipPacket != null)
                 {
-
                     sourceIP = ipPacket.SourceAddress;
                     destionIP = ipPacket.DestinationAddress;
-                    if (isPrint)
-                    {
-                        Console.WriteLine("-------------------IP Layer!-------------------------");
-                        Console.WriteLine(ipPacket.ToString());
-                        Console.WriteLine("IP Packet:{0} <--> {1}",
-                            ipPacket.SourceAddress,
-                            ipPacket.DestinationAddress);
-                        Console.WriteLine("-----------------------------------------------------");
-                    }
+                    LoggerWorker.Instance._logger.Debug("-------------------IP Layer!-------------------------");
+                    LoggerWorker.Instance._logger.Debug(ipPacket.ToString());
+                    LoggerWorker.Instance._logger.Debug("IP Packet:{0} <--> {1}",
+                        ipPacket.SourceAddress,
+                        ipPacket.DestinationAddress);
+                    LoggerWorker.Instance._logger.Debug("-----------------------------------------------------");
                 }
                 var udpPacket = packet.Extract<UdpPacket>();
                 if (udpPacket != null)
@@ -153,45 +144,29 @@ namespace NETSpeedMonitor.CoreZ.Windows.PacpZ
                     isTCP = false;
                     sourcePort = udpPacket.SourcePort;
                     destPort = udpPacket.DestinationPort;
-
-                    if (isPrint)
-                    {
-                        Console.WriteLine("-------------------Transfer Layer!----------------------");
-                        Console.WriteLine(udpPacket.ToString());
-                        Console.WriteLine("UDP Packet:{0} <--> {1}",
-                            udpPacket.SourcePort,
-                            udpPacket.DestinationPort);
-                        Console.WriteLine("----------------------------------------------------");
-                    }
-
+                    LoggerWorker.Instance._logger.Debug("-------------------Transfer Layer!----------------------");
+                    LoggerWorker.Instance._logger.Debug(udpPacket.ToString());
+                    LoggerWorker.Instance._logger.Debug("UDP Packet:{0} <--> {1}",
+                        udpPacket.SourcePort,
+                        udpPacket.DestinationPort);
+                    LoggerWorker.Instance._logger.Debug("----------------------------------------------------");
                 }
                 var tcpPacket = packet.Extract<TcpPacket>();
                 if (tcpPacket != null)
                 {
                     sourcePort = tcpPacket.SourcePort;
                     destPort = tcpPacket.DestinationPort;
-
-                    if (isPrint)
-                    {
-                        Console.WriteLine("-------------------Transfer Layer packet!----------------------");
-                        Console.WriteLine(tcpPacket.ToString());
-                        Console.WriteLine("TCP Packet:{0}<-->{1}",
-                            tcpPacket.SourcePort,
-                            tcpPacket.DestinationPort
-                            );
-                        Console.WriteLine("----------------------------------------------------");
-                    }
-
-                }
-                // Console.WriteLine();
-                if (ethernetPacket?.Type != EthernetType.IPv4)
-                {
-                    //Console.WriteLine("It is not IPV4");
-                    return;
+                    LoggerWorker.Instance._logger.Debug("-------------------Transfer Layer packet!----------------------");
+                    LoggerWorker.Instance._logger.Debug(tcpPacket.ToString());
+                    LoggerWorker.Instance._logger.Debug("TCP Packet:{0}<-->{1}",
+                        tcpPacket.SourcePort,
+                        tcpPacket.DestinationPort
+                        );
+                    //LoggerWorker.Instance._logger.Debug("----------------------------------------------------");
+                    // Console.WriteLine();
                 }
             }
             #endregion
-
 
             CoreDataWorker.packetsQueue.Enqueue(new PcapinfoZ(soucreMAC.ToString(), destionMAC.ToString(),
                                                sourceIP.ToString(), destionIP.ToString(),

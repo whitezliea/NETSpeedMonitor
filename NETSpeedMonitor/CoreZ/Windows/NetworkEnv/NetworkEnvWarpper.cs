@@ -1,4 +1,5 @@
 ﻿using NETSpeedMonitor.CoreZ.Windows.DataWork;
+using NETSpeedMonitor.myLogger;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -39,7 +40,7 @@ namespace NETSpeedMonitor.CoreZ.Windows.ProxyInfo
                 if (ProxyIPAddr != null)
                 {
                     // 获取代理地址
-                    Console.WriteLine("defaultProxy Address: " + ProxyIPAddr);
+                    LoggerWorker.Instance._logger.Debug("defaultProxy Address: " + ProxyIPAddr);
                     var match = Regex.Match(ProxyIPAddr.ToString(), @"http://([\d\.]+):(\d+)/");
 
                     if (match.Success)
@@ -51,12 +52,12 @@ namespace NETSpeedMonitor.CoreZ.Windows.ProxyInfo
                         {
                             CoreDataWorker.ProxyInfo.TryAdd((ipAddress, port), 0);
                         }
-                        Console.WriteLine($"IP Address: {ipAddress}");
-                        Console.WriteLine($"Port: {port}");
+                        LoggerWorker.Instance._logger.Debug($"IP Address: {ipAddress}");
+                        LoggerWorker.Instance._logger.Debug($"Port: {port}");
                     }
                     else
                     {
-                        Console.WriteLine("Invalid input format.");
+                        LoggerWorker.Instance._logger.Warning("Can't get proxyinfo!");
                     }
                 }
 
@@ -64,7 +65,7 @@ namespace NETSpeedMonitor.CoreZ.Windows.ProxyInfo
             }
             catch (Exception ex)
             {
-                Console.WriteLine("An error occurred: " + ex.Message);
+                LoggerWorker.Instance._logger.Error("An error occurred: " + ex.Message);
             }
         }
     }

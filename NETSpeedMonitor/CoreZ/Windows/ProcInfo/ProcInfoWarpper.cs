@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NETSpeedMonitor.myLogger;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -10,7 +11,7 @@ namespace NETSpeedMonitor.CoreZ.Windows.ProcInfo
 {
     internal class ProcInfoWarpper
     {
-        public static bool GetProcessInfoList(ref ConcurrentDictionary<int, string> ProInfoList, bool isPrint = true)
+        public static bool GetProcessInfoList(ref ConcurrentDictionary<int, string> ProInfoList)
         {
             try
             {
@@ -18,12 +19,7 @@ namespace NETSpeedMonitor.CoreZ.Windows.ProcInfo
                 foreach (var process in processes)
                 {
                     if (process.Id == 0) continue;
-
-                    if (isPrint)
-                    {
-                        Console.WriteLine($"{process.Id}<---->{process.ProcessName}");
-                    }
-
+                    LoggerWorker.Instance._logger.Verbose($"{process.Id}<---->{process.ProcessName}");
                     var result = ProInfoList.TryGetValue(process.Id, out var oldvalue);
                     if (result)
                     {
@@ -40,11 +36,9 @@ namespace NETSpeedMonitor.CoreZ.Windows.ProcInfo
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.Message.ToString());
+                LoggerWorker.Instance._logger.Error(e.Message.ToString());
                 return false;
             }
-
-
             return true;
         }
     }

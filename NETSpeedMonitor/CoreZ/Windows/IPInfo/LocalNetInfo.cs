@@ -7,6 +7,7 @@ using System.Net.Sockets;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using NETSpeedMonitor.myLogger;
 
 namespace NETSpeedMonitor.CoreZ.Windows.IPInfo
 {
@@ -19,7 +20,6 @@ namespace NETSpeedMonitor.CoreZ.Windows.IPInfo
         {
 
         }
-
 
         /// <summary>
         /// 懒汉式单例模式
@@ -45,38 +45,34 @@ namespace NETSpeedMonitor.CoreZ.Windows.IPInfo
         public void GetTcpAllList()
         {
             IPGlobalProperties properties = IPGlobalProperties.GetIPGlobalProperties();
-            Console.WriteLine("Computer name: {0}", properties.HostName);
-            Console.WriteLine("Domain name:   {0}", properties.DomainName);
-            Console.WriteLine("Node type:     {0:f}", properties.NodeType);
-            Console.WriteLine("DHCP scope:    {0}", properties.DhcpScopeName);
-            Console.WriteLine("WINS proxy?    {0}", properties.IsWinsProxy);
-
+            LoggerWorker.Instance._logger.Debug("Computer name: {0}", properties.HostName);
+            LoggerWorker.Instance._logger.Debug("Domain name:   {0}", properties.DomainName);
             TcpConnectionInformation[] LocalNetInfo = properties.GetActiveTcpConnections();
 
-            Console.WriteLine("LocalAddress\t" + "LocalPort\t" + "RemoteAddress\t" + "RemotePort\t" + "State\t");
+            LoggerWorker.Instance._logger.Verbose("LocalAddress\t" + "LocalPort\t" + "RemoteAddress\t" + "RemotePort\t" + "State\t");
             // 输出每个连接的信息
             foreach (var tcpconnection in LocalNetInfo)
             {
-                Console.WriteLine(tcpconnection.LocalEndPoint.Address + "\t" +
+                LoggerWorker.Instance._logger.Verbose(tcpconnection.LocalEndPoint.Address + "\t" +
                                   tcpconnection.LocalEndPoint.Port + "\t\t" +
                                   tcpconnection.RemoteEndPoint.Address + "\t" +
                                   tcpconnection.RemoteEndPoint.Port + "\t\t" +
                                   tcpconnection.State + "\t");
             }
 ;
-            Console.WriteLine();
+            LoggerWorker.Instance._logger.Verbose("");
         }
 
         public void GetUdpAllList()
         {
-            Console.WriteLine("Active UDP Listeners");
+            LoggerWorker.Instance._logger.Verbose("Active UDP Listeners");
             IPGlobalProperties properties = IPGlobalProperties.GetIPGlobalProperties();
             IPEndPoint[] endPoints = properties.GetActiveUdpListeners();
             foreach (IPEndPoint e in endPoints)
             {
-                Console.WriteLine(e.ToString());
+                LoggerWorker.Instance._logger.Verbose(e.ToString());
             }
-            Console.WriteLine();
+            LoggerWorker.Instance._logger.Verbose("");
         }
 
         public void GetAllMacList(ref HashSet<string> MACList, bool isPrint = true)
@@ -96,10 +92,7 @@ namespace NETSpeedMonitor.CoreZ.Windows.IPInfo
                         if (ip.Address.AddressFamily == AddressFamily.InterNetwork)
                         {
                             //IPList.Add(ip.Address);
-                            if (isPrint)
-                            {
-                                Console.WriteLine($"Interface: {networkInterface.Description}, IPv4 Address: {ip.Address}");
-                            }
+                            LoggerWorker.Instance._logger.Verbose($"Interface: {networkInterface.Description}, IPv4 Address: {ip.Address}");
                         }
                     }
                 }
@@ -112,10 +105,10 @@ namespace NETSpeedMonitor.CoreZ.Windows.IPInfo
                 MACList.Add(tmp.ToString());
                 if (isPrint)
                 {
-                    Console.WriteLine($"Interface: {networkInterface.Name}, MAC Address: {networkInterface.GetPhysicalAddress()}");
+                    LoggerWorker.Instance._logger.Debug($"Interface: {networkInterface.Name}, MAC Address: {networkInterface.GetPhysicalAddress()}");
                 }
             }
-            Console.WriteLine();
+            LoggerWorker.Instance._logger.Verbose("");
         }
     }
 }
