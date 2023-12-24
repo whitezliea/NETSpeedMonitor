@@ -94,7 +94,7 @@ namespace NETSpeedMonitor.CoreZ.Windows.PacpZ
                     //}
                     else
                     {
-                        LoggerWorker.Instance._logger.Warning($"没有找到进程{pid}?=>{result},连接状态为{sourceIP}==>{destionIP},发送TCP上行流量包大小{packetLength}");
+                        LoggerWorker.Instance._logger.Information($"没有找到进程{pid}?=>{result},连接状态为{sourceIP}==>{destionIP},发送TCP上行流量包大小{packetLength}");
                     }
                 }
                 else     //是UDP
@@ -123,7 +123,7 @@ namespace NETSpeedMonitor.CoreZ.Windows.PacpZ
                     }
                     else
                     {
-                        LoggerWorker.Instance._logger.Warning($"没有找到进程{udppid}?=>{result},状态为{sourceIP}==>{destionIP},发送UDP上行流量包大小{packetLength}");
+                        LoggerWorker.Instance._logger.Information($"没有找到进程{udppid}?=>{result},状态为{sourceIP}==>{destionIP},发送UDP上行流量包大小{packetLength}");
                     }
                 }
             }
@@ -143,7 +143,7 @@ namespace NETSpeedMonitor.CoreZ.Windows.PacpZ
                     }
                     else
                     {
-                        LoggerWorker.Instance._logger.Warning($"没有找到进程{pid}?=>{result},连接状态为{sourceIP}==>{destionIP},发送TCP下行流量包大小{packetLength}"); ;
+                        LoggerWorker.Instance._logger.Information($"没有找到进程{pid}?=>{result},连接状态为{sourceIP}==>{destionIP},发送TCP下行流量包大小{packetLength}"); ;
                     }
                 }
                 else     //是UDP
@@ -172,7 +172,7 @@ namespace NETSpeedMonitor.CoreZ.Windows.PacpZ
                     }
                     else
                     {
-                        LoggerWorker.Instance._logger.Warning($"没有找到进程{udppid}?=>{result},状态为{sourceIP}==>{destionIP},发送UDP下行流量包大小{packetLength}");
+                        LoggerWorker.Instance._logger.Information($"没有找到进程{udppid}?=>{result},状态为{sourceIP}==>{destionIP},发送UDP下行流量包大小{packetLength}");
                     }
                 }
             }         

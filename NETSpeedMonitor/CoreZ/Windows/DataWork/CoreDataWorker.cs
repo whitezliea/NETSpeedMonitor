@@ -90,10 +90,8 @@ namespace NETSpeedMonitor.CoreZ.Windows.DataWork
             }
             LoggerWorker.Instance._logger.Verbose("");
         }
-        public static void tcp_work(bool isPrint = true)
+        public static void tcp_work()
         {
-
-
             List<TCP_INFO_PID> tcpinfolist = new();
             if (!NetInfoWrapper.GetTcpRowList(ref tcpinfolist))
             {

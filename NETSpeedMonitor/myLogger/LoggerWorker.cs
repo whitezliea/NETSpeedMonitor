@@ -20,14 +20,14 @@ namespace NETSpeedMonitor.myLogger
             _logger = new LoggerConfiguration()
            .MinimumLevel.Debug()
            .WriteTo.Console(restrictedToMinimumLevel: LogEventLevel.Warning)
-           .WriteTo.File("netspeedmonitor_debug.log",/*rollingInterval: RollingInterval.Day,*/ fileSizeLimitBytes: 10485760)
+           .WriteTo.File("netspeedmonitor_debug.log",rollingInterval: RollingInterval.Infinite, fileSizeLimitBytes: 10485760)
            .CreateLogger();
             //_logger = Log.Logger;
 #else       //Realse模式
             _logger = new LoggerConfiguration()
             .MinimumLevel.Information()
             .WriteTo.Console(restrictedToMinimumLevel: LogEventLevel.Warning)
-            .WriteTo.File("netspeedmonitor_realese.log", rollingInterval: RollingInterval.Day, fileSizeLimitBytes: 10485760)
+            .WriteTo.File("netspeedmonitor_realese.log", rollingInterval: RollingInterval.Infinite, fileSizeLimitBytes: 10485760)
             .CreateLogger();
 #endif
         }

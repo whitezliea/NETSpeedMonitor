@@ -75,7 +75,7 @@ namespace NETSpeedMonitor.CoreZ.Windows.IPInfo
             LoggerWorker.Instance._logger.Verbose("");
         }
 
-        public void GetAllMacList(ref HashSet<string> MACList, bool isPrint = true)
+        public void GetAllMacList(ref HashSet<string> MACList)
         {
             // 获取当前计算机的所有网络接口
             NetworkInterface[] networkInterfaces = NetworkInterface.GetAllNetworkInterfaces();
@@ -103,10 +103,7 @@ namespace NETSpeedMonitor.CoreZ.Windows.IPInfo
                     continue;
                 }
                 MACList.Add(tmp.ToString());
-                if (isPrint)
-                {
-                    LoggerWorker.Instance._logger.Debug($"Interface: {networkInterface.Name}, MAC Address: {networkInterface.GetPhysicalAddress()}");
-                }
+                LoggerWorker.Instance._logger.Debug($"Interface: {networkInterface.Name}, MAC Address: {networkInterface.GetPhysicalAddress()}");
             }
             LoggerWorker.Instance._logger.Verbose("");
         }

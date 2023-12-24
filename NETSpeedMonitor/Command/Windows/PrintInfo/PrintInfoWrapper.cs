@@ -42,6 +42,9 @@ namespace NETSpeedMonitor.Command.Windows.PrintInfo
             List<(int, string, uint, uint, ulong)> printList = new();
             foreach (var item in CoreDataWorker.pid2Traffic)               //ConcurrentDictionary 的 foreach 在遍历时是线程安全的。
             {
+                if (item.Key == 0) //过滤未知流量
+                    continue;
+
                 CoreDataWorker.ProcDict.TryGetValue(item.Key, out var ProcName);
                 ProcName = (ProcName == null) ? "unknown" : ProcName;
                 uint upvalue = 0;
