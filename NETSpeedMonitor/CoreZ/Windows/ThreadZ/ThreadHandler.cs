@@ -118,6 +118,7 @@ namespace NETSpeedMonitor.CoreZ.Windows.ThreadZ
 
                 try
                 {
+                    dequeueInProgress = true;
                     //防止内存泄漏
                     if (CoreDataWorker.packetsQueue.Count > 500000)
                     {
