@@ -20,7 +20,7 @@ namespace NETSpeedMonitor.CoreZ.Windows.ThreadZ
         public static Timer udp_timer = new Timer();
         public static Timer pcap_timer = new Timer();
         public static Timer print_timer = new Timer();
-
+        private static bool dequeueInProgress = false; //packetqueue dequeue lock
         public static void _all_Thread_start()
         {
             LoggerWorker.Instance._logger.Information("Thread start");
@@ -109,17 +109,36 @@ namespace NETSpeedMonitor.CoreZ.Windows.ThreadZ
             pcap_timer.Start();
             void Timer_Elapsed(object? sender, ElapsedEventArgs e)
             {
-                LoggerWorker.Instance._logger.Debug("packetsQueue的表大小" + CoreDataWorker.packetsQueue.Count);
-                while (!CoreDataWorker.packetsQueue.IsEmpty)
+                if (dequeueInProgress)
                 {
-                    CoreDataWorker.packetsQueue.TryDequeue(out var packet);
-                    PcapinfoZWarpper.PcapinfoZ_Unpack(in packet);
-                }   
-                //防止内存泄漏
-                if (CoreDataWorker.packetsQueue.Count > 500000)
+                    LoggerWorker.Instance._logger.Information("lock this work if another work exits ，return!");
+                    // 如果已经有一个TryDequeue操作在进行中，则跳过当前循环
+                    return;
+                }
+
+                try
                 {
-                    CoreDataWorker.packetsQueue.Clear();
-                    LoggerWorker.Instance._logger.Warning("捕获数据包缓存队列已满，强制清空防止占用过多内存");
+                    //防止内存泄漏
+                    if (CoreDataWorker.packetsQueue.Count > 500000)
+                    {
+                        CoreDataWorker.packetsQueue.Clear();
+                        LoggerWorker.Instance._logger.Warning("捕获数据包缓存队列已满，强制清空防止占用过多内存");
+                    }
+                    LoggerWorker.Instance._logger.Debug("packetsQueue的表大小" + CoreDataWorker.packetsQueue.Count);
+                    while (!CoreDataWorker.packetsQueue.IsEmpty)
+                    {
+                        CoreDataWorker.packetsQueue.TryDequeue(out var packet);
+                        PcapinfoZWarpper.PcapinfoZ_Unpack(in packet);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    LoggerWorker.Instance._logger.Error(ex.ToString());
+                }
+                finally
+                {
+                    LoggerWorker.Instance._logger.Debug("dequeue work end，release lock");
+                    dequeueInProgress = false;
                 }
             }
         }
