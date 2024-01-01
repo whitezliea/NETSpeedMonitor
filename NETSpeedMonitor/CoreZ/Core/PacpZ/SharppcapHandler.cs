@@ -77,7 +77,30 @@ namespace NETSpeedMonitor.CoreZ.Windows.PacpZ
                 //打开设备
                 Cdevice.OnPacketArrival += new PacketArrivalEventHandler(device_OnPakcetArrival);
                 int readTimeoutMilliseconds = 1000;
-                Cdevice.Open(mode: DeviceModes.Promiscuous | DeviceModes.NoCaptureLocal, read_timeout: readTimeoutMilliseconds);
+                try
+                {
+                    if (OperatingSystem.IsWindows())
+                    {
+                        LoggerWorker.Instance._logger.Debug("running on windows");
+                        Cdevice.Open(mode: DeviceModes.Promiscuous | DeviceModes.NoCaptureLocal,
+                            read_timeout: readTimeoutMilliseconds);
+                    }
+                    else if (OperatingSystem.IsLinux())
+                    {
+                        LoggerWorker.Instance._logger.Debug("running on linux");
+                        Cdevice.Open(); //need root mode
+                    }
+                    else
+                    {
+                        LoggerWorker.Instance._logger.Warning("os not support");
+                        return;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    LoggerWorker.Instance._logger.Error(ex.Message);
+                }
+
                 //开始捕获数据包
                 Cdevice.StartCapture();
             }

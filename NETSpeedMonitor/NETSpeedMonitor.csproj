@@ -9,12 +9,12 @@
 
     <PublishSingleFile>true</PublishSingleFile>
     <SelfContained>false</SelfContained>
-    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <StartupObject>NETSpeedMonitor.Program</StartupObject>
   </PropertyGroup>
 
   <ItemGroup>
     <Folder Include="Command\Linux\" />
+    <Folder Include="CoreZ\Core\" />
     <Folder Include="CoreZ\Linux\" />
     <Folder Include="CoreZ\Mac\" />
   </ItemGroup>

@@ -1,5 +1,6 @@
 ﻿using NETSpeedMonitor.CoreZ.Windows.IPInfo;
 using NETSpeedMonitor.CoreZ.Windows.NetInfo;
+using NETSpeedMonitor.CoreZ.Linux.NetInfo;
 using NETSpeedMonitor.CoreZ.Windows.PacpZ;
 using NETSpeedMonitor.CoreZ.Windows.ProxyInfo;
 using NETSpeedMonitor.CoreZ.Windows.ThreadZ;
@@ -17,11 +18,26 @@ namespace NETSpeedMonitor.CoreZ.Windows.DataWork
 {
     internal class NETSpeedInit
     {
-        [SupportedOSPlatform("windows")]
         public static void NetSpeedMonitor_work()
         {
             LoggerWorker.Instance._logger.Information("work init!");
-            _init_work(); //初始化数据
+            if (OperatingSystem.IsWindows())
+            {
+                LoggerWorker.Instance._logger.Information("Running on Windows.");
+                _init_work_Windows(); //初始化数据
+            }
+            else if (OperatingSystem.IsLinux())
+            {
+                LoggerWorker.Instance._logger.Information("Running on Windows.");
+                _init_work_Linux();
+            }
+            else
+            {
+                LoggerWorker.Instance._logger.Debug("not support os!");
+                return;
+            }
+            
+            
             ThreadHandler._all_Thread_start(); //开始多线程定时更新数据
             SharppcapHandler.Instance.CaputreHandler(); //开始捕获数据
             Console.ReadLine(); //输入任一键，结束程序
@@ -29,28 +45,40 @@ namespace NETSpeedMonitor.CoreZ.Windows.DataWork
             _end_work();        //打印统计数据
         }
 
-        static void _init_work()
+        [SupportedOSPlatform("windows")]
+        static void _init_work_Windows()
         {
             //1. Process PID<-->PropName 
             //ProcessList.Instance.GetAllProcessName();
-            CoreDataWorker.proc_work();
+            NetInfoWorkerW.proc_work();
             LoggerWorker.Instance._logger.Verbose("-------------------------------------------------");
             //2. get all MAC
-            CoreDataWorker.mac_work();
+            NetInfoWorkerW.mac_work();
             LoggerWorker.Instance._logger.Verbose("-------------------------------------------------");
             //3. get all tcp
             LocalNetInfo.Instance.GetTcpAllList();
-            CoreDataWorker.tcp_work();
+            NetInfoWorkerW.tcp_work();
             LoggerWorker.Instance._logger.Verbose("-------------------------------------------------");
             //4. get all udp
             LocalNetInfo.Instance.GetUdpAllList();
-            CoreDataWorker.udp_work();
+            NetInfoWorkerW.udp_work();
             LoggerWorker.Instance._logger.Verbose("-------------------------------------------------");
             //5. get Proxy Info
             NetworkEnvWarpper.NetEnvHandler_Init();
             LoggerWorker.Instance._logger.Verbose("-------------------------------------------------");
         }
 
+        [SupportedOSPlatform("Linux")]
+        static void _init_work_Linux()
+        {
+            NetInfoWrokerL.proc_work();
+            NetInfoWrokerL.mac_work();
+            NetInfoWrokerL.inode_work();
+            NetInfoWrokerL.tcp_work();
+            NetInfoWrokerL.udp_work();
+        }
+        
+        
 
         static void _mutli_work_stop()
         {

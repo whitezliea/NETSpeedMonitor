@@ -2,11 +2,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace NETSpeedMonitor.CoreZ.Windows.NetInfo
 {
+    [SupportedOSPlatform("Windows")]
     internal unsafe class NetInfoWrapper
     {
         //参考网站：https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-rrasm/882bec9c-2fb6-4acd-a9b6-dabcab1ac0d6
@@ -26,32 +28,32 @@ namespace NETSpeedMonitor.CoreZ.Windows.NetInfo
 
         #region TCP
         [DllImport("iphlpapi.dll", SetLastError = true)]
-        private extern static int GetTcpStatistics(ref MIB_TCPSTATS pStats);
+        private extern static int GetTcpStatistics(ref Win_NETInfo.MIB_TCPSTATS pStats);
 
         [DllImport("iphlpapi.dll", SetLastError = true)]
         private extern static int GetTcpTable(byte[] pTcpTable, out int pdwSize, bool Order);
 
         [DllImport("iphlpapi.dll", SetLastError = true)]
         private extern static int GetExtendedTcpTable(IntPtr pTable, ref UInt32 dwOutBuffSize, bool sort,
-                                int ipVersion, TCP_TABLE_CLASS tbClass, int reserved);
+                                int ipVersion, Win_NETInfo.TCP_TABLE_CLASS tbClass, int reserved);
         #endregion
 
         #region UDP
         [DllImport("iphlpapi.dll", SetLastError = true)]
-        private extern static int GetUdpStatistics(ref MIB_UDPSTATS pStats);
+        private extern static int GetUdpStatistics(ref Win_NETInfo.MIB_UDPSTATS pStats);
 
         [DllImport("iphlpapi.dll", SetLastError = true)]
         private static extern int GetUdpTable(byte[] UcpTable, out int pdwSize, bool bOrder);
 
         [DllImport("iphlpapi.dll", SetLastError = true)]
         private static extern int GetExtendedUdpTable(IntPtr pTable, ref UInt32 dwOutBufLen, bool sort,
-                                int ipVersion, UDP_TABLE_CLASS tblClass, int reserved);
+                                int ipVersion, Win_NETInfo.UDP_TABLE_CLASS tblClass, int reserved);
         #endregion
 
 
-        public static MIB_TCPSTATS GetTcpStats()
+        public static Win_NETInfo.MIB_TCPSTATS GetTcpStats()
         {
-            MIB_TCPSTATS tcpStats = new MIB_TCPSTATS();
+            Win_NETInfo.MIB_TCPSTATS tcpStats = new Win_NETInfo.MIB_TCPSTATS();
             GetTcpStatistics(ref tcpStats);
             Console.WriteLine("{0} --.", tcpStats.dwActiveOpens);
             return tcpStats;
@@ -106,23 +108,23 @@ namespace NETSpeedMonitor.CoreZ.Windows.NetInfo
             return strg_state;
         }
 
-        public static bool GetProcessUdpConns(ref MIB_UDPTABLE_OWNER_PID UdpConns)
+        public static bool GetProcessUdpConns(ref Win_NETInfo.MIB_UDPTABLE_OWNER_PID UdpConns)
         {
 
             UInt32* ptable = (UInt32*)IntPtr.Zero;
             UInt32 dwSize = 0;
             GetExtendedUdpTable((IntPtr)ptable, ref dwSize, true,
-                            AFType.AF_INET, UDP_TABLE_CLASS.UDP_TABLE_OWNER_PID, 0);
+                            Win_NETInfo.AFType.AF_INET, Win_NETInfo.UDP_TABLE_CLASS.UDP_TABLE_OWNER_PID, 0);
             char* tmp = stackalloc char[(int)dwSize];
             ptable = (UInt32*)tmp;
 
             if (GetExtendedUdpTable((IntPtr)ptable, ref dwSize, true,
-                            AFType.AF_INET, UDP_TABLE_CLASS.UDP_TABLE_OWNER_PID, 0) != NO_ERROR)
+                            Win_NETInfo.AFType.AF_INET, Win_NETInfo.UDP_TABLE_CLASS.UDP_TABLE_OWNER_PID, 0) != NO_ERROR)
                 return false;
 
             UdpConns.dwNumEntries = ptable[0];
-            UdpConns.table = new MIB_UDPROW_OWNER_PID[UdpConns.dwNumEntries];
-            MIB_UDPROW_OWNER_PID* row = (MIB_UDPROW_OWNER_PID*)&ptable[1];
+            UdpConns.table = new Win_NETInfo.MIB_UDPROW_OWNER_PID[UdpConns.dwNumEntries];
+            Win_NETInfo.MIB_UDPROW_OWNER_PID* row = (Win_NETInfo.MIB_UDPROW_OWNER_PID*)&ptable[1];
             UInt32 J = 0;
             for (int i = 0; i < UdpConns.dwNumEntries; i++)
             {
@@ -136,25 +138,25 @@ namespace NETSpeedMonitor.CoreZ.Windows.NetInfo
             return true;
         }
 
-        public static bool GetProcessTcpConns(ref MIB_TCPTABLE_OWNER_PID ExConns)
+        public static bool GetProcessTcpConns(ref Win_NETInfo.MIB_TCPTABLE_OWNER_PID ExConns)
         {
             UInt32* ptable = (UInt32*)IntPtr.Zero;
             UInt32 dwSize = 0;
             GetExtendedTcpTable((IntPtr)ptable, ref dwSize, true,
-                            AFType.AF_INET, TCP_TABLE_CLASS.TCP_TABLE_OWNER_PID_ALL, 0);
+                            Win_NETInfo.AFType.AF_INET, Win_NETInfo.TCP_TABLE_CLASS.TCP_TABLE_OWNER_PID_ALL, 0);
 
             char* tmp = stackalloc char[(int)dwSize];
             ptable = (UInt32*)tmp;
 
             if (GetExtendedTcpTable((IntPtr)ptable, ref dwSize, true,
-                            AFType.AF_INET, TCP_TABLE_CLASS.TCP_TABLE_OWNER_PID_ALL, 0) != NO_ERROR)
+                            Win_NETInfo.AFType.AF_INET, Win_NETInfo.TCP_TABLE_CLASS.TCP_TABLE_OWNER_PID_ALL, 0) != NO_ERROR)
             {
                 return false;
             }
 
             ExConns.dwNumEntries = (UInt32)ptable[0];
-            ExConns.table = new MIB_TCPROW_OWNER_PID[ExConns.dwNumEntries];
-            MIB_TCPROW_OWNER_PID* row = (MIB_TCPROW_OWNER_PID*)(&ptable[1]);
+            ExConns.table = new Win_NETInfo.MIB_TCPROW_OWNER_PID[ExConns.dwNumEntries];
+            Win_NETInfo.MIB_TCPROW_OWNER_PID* row = (Win_NETInfo.MIB_TCPROW_OWNER_PID*)(&ptable[1]);
             UInt32 J = 0;
             for (int i = 0; i < ExConns.dwNumEntries; i++)
             {
@@ -183,9 +185,9 @@ namespace NETSpeedMonitor.CoreZ.Windows.NetInfo
         }
 
 
-        public static bool GetUdpRowList(ref List<UDP_INFO_PID> udpinfolist)
+        public static bool GetUdpRowList(ref List<Win_NETInfo.UDP_INFO_PID> udpinfolist)
         {
-            MIB_UDPTABLE_OWNER_PID ttable = new();
+            Win_NETInfo.MIB_UDPTABLE_OWNER_PID ttable = new();
             GetProcessUdpConns(ref ttable);
             if (ttable.dwNumEntries <= 0)
                 return false;
@@ -195,7 +197,7 @@ namespace NETSpeedMonitor.CoreZ.Windows.NetInfo
                 //if (ttable.table[i].dwOwningPid == 0)
                 //    continue;
 
-                UDP_INFO_PID tmp = new();
+                Win_NETInfo.UDP_INFO_PID tmp = new();
                 tmp.dwpid = Convert.ToInt32(ttable.table[i].dwOwningPid);
                 tmp.dwlocaladdr = ConvertToIPv4Srting(ttable.table[i].dwLocalAddr);
                 tmp.dwlocalport = Convert.ToInt32(convert_Port(ttable.table[i].dwLocalPort));
@@ -208,9 +210,9 @@ namespace NETSpeedMonitor.CoreZ.Windows.NetInfo
             return true;
         }
 
-        public static bool GetTcpRowList(ref List<TCP_INFO_PID> tcpinfolist)
+        public static bool GetTcpRowList(ref List<Win_NETInfo.TCP_INFO_PID> tcpinfolist)
         {
-            MIB_TCPTABLE_OWNER_PID ttable = new MIB_TCPTABLE_OWNER_PID();
+            Win_NETInfo.MIB_TCPTABLE_OWNER_PID ttable = new Win_NETInfo.MIB_TCPTABLE_OWNER_PID();
             GetProcessTcpConns(ref ttable);
             if (ttable.dwNumEntries <= 0)
                 return false;
@@ -221,7 +223,7 @@ namespace NETSpeedMonitor.CoreZ.Windows.NetInfo
                 //if (ttable.table[i].dwOwningPid == 0)
                 //    continue;
 
-                TCP_INFO_PID tmp = new();
+                Win_NETInfo.TCP_INFO_PID tmp = new();
                 tmp.dwpid = Convert.ToInt32(ttable.table[i].dwOwningPid);
                 tmp.dwlocaladdr = ConvertToIPv4Srting(ttable.table[i].dwLocalAddr);
                 tmp.dwlocalport = Convert.ToInt32(convert_Port(ttable.table[i].dwLocalPort));

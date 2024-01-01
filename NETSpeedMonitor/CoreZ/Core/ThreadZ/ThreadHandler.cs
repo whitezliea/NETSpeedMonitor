@@ -8,6 +8,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Timers;
+using NETSpeedMonitor.CoreZ.Linux.NetInfo;
+using NETSpeedMonitor.CoreZ.Windows.NetInfo;
 using Timer = System.Timers.Timer;
 
 namespace NETSpeedMonitor.CoreZ.Windows.ThreadZ
@@ -42,7 +44,14 @@ namespace NETSpeedMonitor.CoreZ.Windows.ThreadZ
             proc_timer.Start();
             void Timer_Elapsed(object? sender, ElapsedEventArgs e)
             {
-                CoreDataWorker.proc_work();
+                if (OperatingSystem.IsWindows())
+                {
+                    NetInfoWorkerW.proc_work();
+                }
+                else if (OperatingSystem.IsLinux())
+                {
+                    NetInfoWrokerL.proc_work();
+                }
                 LoggerWorker.Instance._logger.Debug("processID<--->processName 表更新 表大小："+CoreDataWorker.ProcDict.Count);
             }
         }
@@ -56,7 +65,14 @@ namespace NETSpeedMonitor.CoreZ.Windows.ThreadZ
             mac_timer.Start();
             void Timer_Elapsed(object? sender, ElapsedEventArgs e)
             {
-                CoreDataWorker.mac_work();
+                if (OperatingSystem.IsWindows())
+                {
+                    NetInfoWorkerW.mac_work();
+                }
+                else if (OperatingSystem.IsLinux())
+                {
+                    NetInfoWrokerL.mac_work();
+                }
                 LoggerWorker.Instance._logger.Debug("MACList 表更新 表大小：" + CoreDataWorker.MACList.Count);
             }
         }
@@ -70,7 +86,14 @@ namespace NETSpeedMonitor.CoreZ.Windows.ThreadZ
             tcp_timer.Start();
             void Timer_Elapsed(object? sender, ElapsedEventArgs e)
             {
-                CoreDataWorker.tcp_work();
+                if (OperatingSystem.IsWindows())
+                {
+                    NetInfoWorkerW.tcp_work();
+                }
+                else if (OperatingSystem.IsLinux())
+                {
+                    NetInfoWrokerL.tcp_work();
+                }
                 LoggerWorker.Instance._logger.Debug("connection2pid 表更新 表大小：" + CoreDataWorker.connection2pid.Count);
                 if (CoreDataWorker.connection2pid.Count > 10240)
                 {
@@ -89,7 +112,15 @@ namespace NETSpeedMonitor.CoreZ.Windows.ThreadZ
             udp_timer.Start();
             void Timer_Elapsed(object? sender, ElapsedEventArgs e)
             {
-                CoreDataWorker.udp_work();
+                if (OperatingSystem.IsWindows())
+                {
+                    NetInfoWorkerW.udp_work();
+                }
+                else if (OperatingSystem.IsLinux())
+                {
+                    NetInfoWrokerL.inode_work();
+                    NetInfoWrokerL.udp_work();
+                }
                 LoggerWorker.Instance._logger.Debug("Udp2pid 表更新 表大小：" + CoreDataWorker.Udp2pid.Count);
                 //防止内存泄漏
                 if (CoreDataWorker.Udp2pid.Count > 2048)

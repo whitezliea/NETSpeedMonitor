@@ -73,7 +73,7 @@ namespace NETSpeedMonitor.Command.Windows.PrintInfo
             printList.Sort((x, y) => y.Item5.CompareTo(x.Item5));
 
             int count = 0;
-            Console.WriteLine($"{"进程id",-10}\t\t{"进程名",-25}\t\t{"UpSpeed",-14}\t\t{"DownSpeed",-14}\t\t");
+            Console.WriteLine($"{"PID",-10}\t\t{"ProcName",-25}\t\t{"UpSpeed",-14}\t\t{"DownSpeed",-14}\t\t");
             foreach (var item in printList)
             {
                 if (count > 16)
