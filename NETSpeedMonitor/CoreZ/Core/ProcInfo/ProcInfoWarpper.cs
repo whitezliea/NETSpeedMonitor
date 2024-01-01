@@ -19,18 +19,27 @@ namespace NETSpeedMonitor.CoreZ.Windows.ProcInfo
                 foreach (var process in processes)
                 {
                     if (process.Id == 0) continue;
-                    LoggerWorker.Instance._logger.Verbose($"{process.Id}<---->{process.ProcessName}");
+                    string procName;
+                    if (process.ProcessName.Contains(' ') && OperatingSystem.IsLinux())
+                    {
+                        procName = process.ProcessName.Split(' ')[0];
+                    }
+                    else
+                    {
+                        procName = process.ProcessName;
+                    }
+                    LoggerWorker.Instance._logger.Verbose($"{process.Id}<---->{procName}");
                     var result = ProInfoList.TryGetValue(process.Id, out var oldvalue);
                     if (result)
                     {
                         //ProInfoList[process.Id] = process.ProcessName;
                         ProInfoList.TryUpdate(process.Id,
-                        process.ProcessName,
+                            procName,
                         oldvalue!);
                     }
                     else
                     {
-                        ProInfoList.TryAdd(process.Id, process.ProcessName);
+                        ProInfoList.TryAdd(process.Id, procName);
                     }
                 }
             }
