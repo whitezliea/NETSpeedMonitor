@@ -50,6 +50,7 @@ namespace NETSpeedMonitor.CoreZ.Windows.ThreadZ
                 }
                 else if (OperatingSystem.IsLinux())
                 {
+                    NetInfoWrokerL.inode_work();
                     NetInfoWrokerL.proc_work();
                 }
                 LoggerWorker.Instance._logger.Debug("processID<--->processName 表更新 表大小："+CoreDataWorker.ProcDict.Count);
@@ -117,8 +118,7 @@ namespace NETSpeedMonitor.CoreZ.Windows.ThreadZ
                     NetInfoWorkerW.udp_work();
                 }
                 else if (OperatingSystem.IsLinux())
-                {
-                    NetInfoWrokerL.inode_work();
+                {                    
                     NetInfoWrokerL.udp_work();
                 }
                 LoggerWorker.Instance._logger.Debug("Udp2pid 表更新 表大小：" + CoreDataWorker.Udp2pid.Count);
